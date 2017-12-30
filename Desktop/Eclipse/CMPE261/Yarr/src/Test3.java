@@ -6,17 +6,41 @@ import java.util.concurrent.SynchronousQueue;
 
 public class Test3 {
 	
-	public static HashT<HashT,Integer> transformPrefs(HashT<Integer, HashT> data) {
+	public static HashT<Integer, HashT> calculateSimilarItems(HashT<Integer, HashT> data,int n){
 		HashT<Integer, HashT> result = new HashT<>();
-		
-		for (int i:data.keys()) {
-			HashT<Integer, Integer> temp = data.get(i);
-			for(int j:data.keys()) {
-				result.put(key, val);
-			} // it is not finished...! Look at it!!
+		HashT<Integer, HashT> transdata = transformPrefs(data);
+		int counter=0;
+		for(int movie:transdata.keys()) {
+			counter++;
+			if(counter%100==0) {
+				System.out.println(counter+":"+transdata.size());
+				
+			}
+			HashT<Double, Integer> a=topMatches(transdata, n,movie);
+			result.put(movie, a);
+			
 		}
 		return result;
-		
+	}
+	
+	public static HashT<Integer, HashT> transformPrefs(HashT<Integer, HashT> data) {
+		HashT<Integer, HashT> result = new HashT<>();
+
+		for (int user : data.keys()) {
+			HashT<Integer, Integer> temp = data.get(user);
+			for (int movie : temp.keys()) {
+				if (result.contains(movie)) {
+					result.get(movie).put(user, temp.get(movie));
+				} else {
+					HashT<Integer, Integer> nestedTree = new HashT<>();
+					nestedTree.put(user, temp.get(movie));
+					result.put(movie, nestedTree);
+				}
+			}
+		}
+
+		return result;
+
 	}
 	
 	public static HashT<Integer, Integer> intersection(HashT<Integer, HashT> data, int person1, int person2) {
@@ -56,6 +80,28 @@ public class Test3 {
 		return 1 / (1 + Math.sqrt(counter));
 	}
 	
+	public static HashT topMatches(HashT<Integer, HashT> data, int n, int person1) {
+		HashT<Double, Integer> scores = new HashT<>();
+		BST<Double, Integer> temp = new BST<>();
+		for (int other : data.keys()) {
+			if (other != person1) {
+				temp.put(sim_distance(data, person1, other), other);
+			}
+		}
+//		Heap sort=new Heap();
+//		Iterable<Double> keys=temp.keys();
+//		sort.sort(keys);
+		while(n>temp.size()) {
+			n--;
+		}
+		for (int i = 0; i < n; i++) {
+			scores.put(temp.max(), temp.get(temp.max()));
+			temp.deleteMax();
+		}
+		return scores;
+
+	}
+	
 	public static void getRecommendations(HashT<Integer, HashT> data, int person1) {
 		for (int other:data.keys()) {
 			if(other==person1)continue;
@@ -73,7 +119,7 @@ public class Test3 {
 	
 	public static void main(String[] args) {
 		HashT<Integer, String> item = new HashT<>();
-		
+
 		HashT<Integer, HashT> data = new HashT<Integer, HashT>();
 		// Adding Key and Value pairs to data
 		// System.out.println(data.containsKey("Key1"));
@@ -143,33 +189,37 @@ public class Test3 {
 			// Or we could just do this:
 			// ex.printStackTrace();
 		}
+		//ex of trans
+//		HashT<Integer, HashT> transdata=transformPrefs(data);
+//		for(int key:data.keys()) {
+//			HashT<Integer, Integer> nestedTree=data.get(key);
+//			for(int movie:nestedTree.keys()) {
+//				System.out.println(key+":"+item.get(movie)+":"+nestedTree.get(movie));
+//			}
+//		}
+//		for(int movie:transdata.keys()) {
+//			HashT<Integer, Integer> nestedTree=transdata.get(movie);
+//			for(int user:nestedTree.keys()) {
+//				System.out.println(item.get(movie)+":"+user+":"+nestedTree.get(user));
+//			}
+//		}
+		//ex of intersection
+//		HashT<Integer, Integer> deneme=intersection(transdata, 1, 2);
+//		for(int user:deneme.keys()) {
+//			System.out.println(user);
+//		}
+		//ex of calcsimitem
+//		HashT<Integer, HashT> deneme=calculateSimilarItems(data, 10);
+//		for(int movie:deneme.keys()) {
+//			HashT nested=deneme.get(movie);
+//			for(Object sim:nested.keys()) {
+//				double simd=(double) sim;
+//				System.out.println(item.get(movie)+":"+simd+","+item.get((int)nested.get(simd)));
+//				
+//			}
+//		}
 
-		HashT<HashT, Integer> a = transformPrefs(data);
-		
-		for(int k:a.keys()) {
-			System.out.println(k);
-		}
-		System.out.println();
 		
 		
-
-//		 for(int i:data.keys()){
-//		 HashT<Integer, Integer> movie= data.get(i);
-//		
-//		 for(int c:movie.keys()){
-//		 if(c==1){
-//		 System.out.println(i+":"+item.get(c)+":"+movie.get(c));
-//		 }
-//		
-//		 }
-//		 }
-		// for (int s : data.keys()) {
-		// LinearProbingHashST<Integer, Integer> yarr= data.get(s);
-		// //System.out.println(yarr.keys());
-		// for(int i:yarr.keys()){
-		// System.out.println(s+":"+ i +":"+yarr.get(i));
-		// }
-		// }
-
 	}
 }
